@@ -1,0 +1,10 @@
+{
+  "name": "petrol-pump-app-firebase",
+  "version": "1.0.0",
+  "description": "Firebase migration scripts for Petrol Pump App",
+  "main": "uploadData.js",
+  "dependencies": {
+    "firebase-admin": "^12.0.0",
+    "firebase": "^10.0.0"
+  }
+}

@@ -1,0 +1,36 @@
+# Node
+node_modules/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+
+# Sensitive files
+serviceAccountKey.json
+
+# Cache
+.npm
+.eslintcache
+
+# Build / output
+dist/
+build/
+
+# Coverage
+coverage
+.nyc_output
+
+# Misc
+*.tgz
+.node_repl_history
+*.save

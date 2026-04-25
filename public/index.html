@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FuelFinder Pro | Smart Route AI</title>
+    <!-- Modern Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Leaflet Routing Machine CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+    
+    <link rel="stylesheet" href="style.css?v=2">
+</head>
+<body>
+    <div id="map"></div>
+    
+    <!-- Premium Sidebar UI -->
+    <div class="glass-panel sidebar animate-slide-in">
+        <div class="header">
+            <div class="logo-wrapper">
+                <div class="logo-icon glow">⛽</div>
+                <div class="ai-badge" id="pro-badge" title="Upgrade to PRO">PRO</div>
+            </div>
+            <div>
+                <h1>FuelFinder</h1>
+                <p>Powered by Smart Route AI™</p>
+            </div>
+        </div>
+        
+        <div class="action-section">
+            <div class="search-box">
+                <input type="text" id="address-input" placeholder="Enter your location manually...">
+                <button id="search-btn" class="search-btn">🔍</button>
+            </div>
+            <div style="text-align: center; margin: 8px 0; color: var(--text-muted); font-size: 0.8rem; font-weight: 600;">OR</div>
+            <button id="locate-btn" class="primary-btn glow-btn">
+                <span class="btn-icon">📍</span> 
+                <span class="btn-text">Double-Click to Locate Me</span>
+            </button>
+            <p class="action-hint" id="location-status">Waiting for location to calculate routes.</p>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="filter-section">
+            <h3>Amenities Needed</h3>
+            <div class="filter-chips">
+                <button class="chip" data-filter="247"><span class="emoji">⏰</span> 24/7 Open</button>
+                <button class="chip" data-filter="toilets"><span class="emoji">🚻</span> Toilets</button>
+                <button class="chip" data-filter="food"><span class="emoji">🍔</span> Food</button>
+                <button class="chip" data-filter="ev"><span class="emoji">⚡</span> EV Charging</button>
+            </div>
+        </div>
+
+        <div class="stats-card glass-morph">
+            <div class="stat-inner">
+                <span class="stat-value" id="pump-count">0</span>
+                <span class="stat-label">Stations Matching Criteria</span>
+            </div>
+            <div class="stat-decor"></div>
+        </div>
+        
+        <p style="text-align: center; font-size: 0.8rem; color: var(--text-muted); margin-top:-10px;">
+            <em>💡 Tip: Right-click anywhere on the map to add a missing station!</em>
+        </p>
+    </div>
+
+    <!-- Map UI Controls Overlays (Top Right) -->
+    <div class="top-controls">
+        <button id="theme-toggle" class="icon-btn glass-morph" title="Toggle Theme">🌓</button>
+    </div>
+
+    <!-- MODALS OVERLAYS -->
+    
+    <!-- Add Pump Modal -->
+    <div id="add-pump-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-morph">
+            <button class="close-modal" onclick="closeModal('add-pump-modal')">&times;</button>
+            <h2>➕ Add New Station</h2>
+            <p class="modal-desc">Help the community by mapping unlisted fuel stations at this exact location.</p>
+            
+            <div class="form-group">
+                <label>Station Name / Brand</label>
+                <input type="text" id="new-pump-name" placeholder="e.g., Shell Highway Oasis">
+            </div>
+            
+            <label style="display:block; margin-bottom:8px; font-weight:600; color:var(--text-main);">Available Amenities:</label>
+            <div class="filter-chips" id="new-pump-amenities" style="margin-bottom: 20px;">
+                <button class="chip" data-toggle="247">⏰ 24/7</button>
+                <button class="chip" data-toggle="toilets">🚻 Toilets</button>
+                <button class="chip" data-toggle="food">🍔 Food</button>
+                <button class="chip" data-toggle="ev">⚡ EV Charger</button>
+            </div>
+            
+            <button id="submit-new-pump" class="primary-btn">Submit for Review</button>
+        </div>
+    </div>
+
+    <!-- Feedback / Report Modal -->
+    <div id="feedback-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-morph">
+            <button class="close-modal" onclick="closeModal('feedback-modal')">&times;</button>
+            <h2 id="feedback-title">Rate this Station</h2>
+            
+            <div class="star-rating" id="star-rating">
+                <span data-val="1">★</span><span data-val="2">★</span><span data-val="3">★</span><span data-val="4">★</span><span data-val="5">★</span>
+            </div>
+            
+            <div class="form-group">
+                <label>Leave a Review</label>
+                <textarea id="feedback-text" rows="3" placeholder="How was the service? Restrooms clean?"></textarea>
+            </div>
+            
+            <button id="submit-feedback" class="primary-btn" style="margin-bottom: 12px;">Post Review</button>
+            
+            <div class="divider" style="margin: 15px 0;"></div>
+            
+            <button id="report-pump" class="danger-btn">🚩 Report as Closed / Non-Existent</button>
+        </div>
+    </div>
+
+    <!-- Subscription Pro Modal -->
+    <div id="pro-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-morph pro-glow">
+            <button class="close-modal" onclick="closeModal('pro-modal')">&times;</button>
+            <h2 class="gradient-text">Unlock FuelFinder PRO</h2>
+            <p class="modal-desc" style="font-size: 1.1rem;">Get Smart Route AI™, Real-time Queue Tracking, and Offline Maps for just <strong>$4.99/mo</strong>.</p>
+            
+            <ul class="pro-features">
+                <li><span>✨</span> Smart Route AI (Predicts optimal routes & queue times)</li>
+                <li><span>🗺️</span> Offline Maps (Never get stranded without signal)</li>
+                <li><span>🤖</span> Personalized AI Fuel Stops based on tank level</li>
+                <li><span>🚫</span> Zero Ads FOREVER</li>
+            </ul>
+            
+            <button class="primary-btn pulse-glow" onclick="alert('Redirecting to Stripe Checkout...')">Upgrade Now - 7 Days Free</button>
+            <p class="terms">Cancel anytime. Secure checkout via Stripe.</p>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+    
+    <script src="script.js?v=2"></script>
+</body>
+</html>
